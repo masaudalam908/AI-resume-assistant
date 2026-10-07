@@ -1,0 +1,112 @@
+# 📄 ATS Resume Checker
+
+A Streamlit app that scores a resume for ATS (Applicant Tracking System) compatibility and tells you exactly what to improve. Upload a PDF or DOCX, optionally paste a job description, and Google Gemini Flash does the analysis.
+
+## Features
+
+- Upload a **PDF or DOCX** resume (max 5 MB)
+- **Overall ATS score (0-100)** built from five weighted categories
+- Optional **job description** input for a real keyword-match score
+- **Prioritized improvements** (High / Medium / Low) with before/after style examples
+- **Missing keywords**, strengths, weaknesses and ATS formatting problems
+- Facts from the file itself: word count, pages, tables, bullet count, email/phone/LinkedIn found
+- **Download the report** as Markdown
+
+## How the score works
+
+Gemini rates five categories from 0 to 100. The app then calculates the overall score itself, so the number is consistent and explainable:
+
+| Category | Weight |
+|---|---|
+| Keywords & relevance | 30% |
+| Formatting & parsability | 20% |
+| Section structure | 20% |
+| Impact & achievements | 20% |
+| Readability & language | 10% |
+
+This is an estimate. Real ATS products differ, so treat the score as guidance, not a guarantee.
+
+## Project structure
+
+```
+.
+├── app.py             # Streamlit app
+├── requirements.txt   # Python dependencies
+└── README.md
+```
+
+## Run locally
+
+1. Install Python 3.10 or newer.
+2. Get a free Gemini API key at https://aistudio.google.com/apikey
+3. In a terminal:
+
+```bash
+# create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+
+pip install -r requirements.txt
+
+# provide your key (or paste it into the sidebar when the app opens)
+export GEMINI_API_KEY="your-key-here"     # Windows PowerShell: $env:GEMINI_API_KEY="your-key-here"
+
+streamlit run app.py
+```
+
+The app opens at http://localhost:8501.
+
+## Configuration
+
+| Setting | How to set it | Default |
+|---|---|---|
+| `GEMINI_API_KEY` | environment variable or Streamlit secret | asked in the sidebar if missing |
+| `GEMINI_MODEL` | environment variable or Streamlit secret | `gemini-2.5-flash` |
+
+The model name can also be changed in the sidebar. If Google retires or renames a model, change this value; no code edit is needed.
+
+## Push to GitHub (using the website, no command line)
+
+1. Sign in at https://github.com and click **+** (top right) → **New repository**.
+2. Name it, for example `ats-resume-checker`. Choose **Public** (needed for the free Streamlit Community Cloud plan unless you connect a private repo), tick **Add a README file** is optional, then click **Create repository**.
+3. In the repository, click **Add file** → **Upload files**.
+4. Drag in `app.py`, `requirements.txt` and `README.md`. If a README already exists, GitHub will ask to replace it; that is fine.
+5. Scroll down, type a commit message such as `Add ATS resume checker`, keep **Commit directly to the main branch**, and click **Commit changes**.
+
+> Never upload your API key. Keep it only in Streamlit's Secrets (below) or in your own environment.
+
+## Deploy on Streamlit Community Cloud
+
+1. Go to https://share.streamlit.io and sign in with GitHub. Allow access to your repositories when asked.
+2. Click **Create app** → **Deploy a public app from GitHub**.
+3. Choose your repository, branch `main`, and set **Main file path** to `app.py`.
+4. Click **Advanced settings**. In **Secrets**, paste:
+
+   ```toml
+   GEMINI_API_KEY = "your-key-here"
+   ```
+
+   Optionally pick a Python version (3.11 or 3.12 works well).
+5. Click **Deploy**. The first build takes a few minutes while it installs `requirements.txt`.
+6. You get a public URL like `https://your-app-name.streamlit.app`.
+
+To change the key later: open the app → **Manage app** → **Settings** → **Secrets**. Any push to `main` redeploys the app automatically.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---|---|
+| "Gemini rejected the request" | The API key is wrong or the model name is invalid. Check both. |
+| "model name was not found" | Set a current Flash model in the sidebar or `GEMINI_MODEL`. |
+| "rate limit reached" | You hit the free-tier limit. Wait a minute and retry. |
+| "Almost no text could be extracted" | The PDF is a scanned image. Export a text-based PDF or DOCX. ATS software cannot read images either. |
+| "password protected" | Upload an unlocked copy. |
+| Build fails on Streamlit Cloud | Make sure `requirements.txt` is in the repo root, not a subfolder. |
+
+## Privacy
+
+The resume text and job description are sent to the Gemini API for analysis. The app does not save uploaded files or results to disk; results live only in your browser session. If you deploy a public instance, tell your users that their text is processed by Google's API, and consider whether that suits the data you handle.
+
+## Tech stack
+
+Streamlit · Google Gen AI SDK (`google-genai`) with Gemini Flash · pypdf · python-docx · Pydantic
